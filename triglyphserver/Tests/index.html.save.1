@@ -1,0 +1,188 @@
+<!doctype html>
+<html>
+<head>
+<title>Triglyph Portal</title>
+<style>
+.grid-container {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  background-color: #2196F3;
+  padding: 10px;
+}
+.grid-item {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  font-size: 30px;
+  text-align: center;
+}
+.ir-grid {
+  display: grid;
+  grid-template-columns: auto auto auto auto auto auto auto auto;
+  padding: 5px;
+  width: 33%;
+}
+.ir-pixel {
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(0, 0, 0, 0.8);
+  padding-bottom: 100%;
+  font-size: 5px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div id ="mySensor"></div>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+  		var socket = io();
+
+		function sensorSelectionChanged(selectedSensors) {
+			socket.emit('sensorSelectionChanged', selectedSensors);
+		}
+
+		function playPressed () {
+			socket.emit('play');
+		}
+
+		function pausePressed () {
+			socket.emit('pause');
+		}
+
+		function resetPressed () {
+			socket.emit('reset');
+			location.reload();
+		}
+
+		function loadPressed () {
+			socket.emit('load');
+		}
+
+		function storePressed () {
+			socket.emit('store');
+		}
+
+		function infoPressed () {
+			socket.emit('info');
+		}
+
+		socket.on('message', function(message) {
+			document.body.innerHTML += (message + "<br>");
+		});
+		socket.on('serialopen', function (baud) {
+			document.body.innerHTML += ("Opened serial port with baud rate: " + baud + "<br>");
+		});
+
+		socket.on('serialclosed', function () {
+			document.body.innerHTML += ("Serial port closed" + "<br>");
+		});
+
+		socket.on('serialerror', function () {
+			document.body.innerHTML += ("Serial port error!!!" + "<br>");;
+		});		
+
+		socket.on('newData', function (sampleTime, results) {
+			document.body.innerHTML += (sampleTime + ': ');
+			for (var i = 0; i < results.length; i++) {
+				document.body.innerHTML += (results[i] + ', ');
+			}
+			document.body.innerHTML += "<br>";
+			document.getElementById("tempSensorCurrent").innerHTML = results[0];
+			for (var i = 29; i < 93; i++) {
+                        	document.getElementById("IRCamera" + i-28).style.backgroundColor = 'rgb(0, 0, ' + i*3 + ')';
+                        }
+		});
+
+	</script>
+
+	<center>
+	<h1>Triglyph Data Feed</h1>
+	<button onclick="playPressed()">Play</button>
+	<button onclick="pausePressed()">Pause</button>
+	<button onclick="resetPressed()">Reset</button>
+	<button onclick="loadPressed()">Load</button>
+	<button onclick="storePressed()">Store</button>
+	<button onclick="infoPressed()">Info</button>
+	<br>
+	<div class="grid-container">
+  		<div class="grid-item"><div id="tempSensorCurrent"></div></div>
+  		<div class="grid-item">2</div>
+  		<div class="grid-item">3</div>  
+  		<div class="grid-item">4</div>
+  		<div class="grid-item">5</div>
+  		<div class="grid-item">6</div>  
+  		<div class="grid-item">7</div>
+ 		<div class="grid-item">8</div>
+  		<div class="grid-item">9</div>  
+	</div>
+	<div class="ir-grid">
+		<div class="ir-pixel" id="IRCamera1"></div>
+                <div class="ir-pixel" id="IRCamera2"></div>
+                <div class="ir-pixel" id="IRCamera3"></div>
+                <div class="ir-pixel" id="IRCamera4"></div>
+                <div class="ir-pixel" id="IRCamera5"></div>
+                <div class="ir-pixel" id="IRCamera6"></div>
+                <div class="ir-pixel" id="IRCamera7"></div>
+                <div class="ir-pixel" id="IRCamera8"></div>
+                <div class="ir-pixel" id="IRCamera9"></div>
+                <div class="ir-pixel" id="IRCamera10"></div>
+                <div class="ir-pixel" id="IRCamera11"></div>
+                <div class="ir-pixel" id="IRCamera12"></div>
+                <div class="ir-pixel" id="IRCamera13"></div>
+                <div class="ir-pixel" id="IRCamera14"></div>
+                <div class="ir-pixel" id="IRCamera15"></div>
+                <div class="ir-pixel" id="IRCamera16"></div>
+                <div class="ir-pixel" id="IRCamera17"></div>
+                <div class="ir-pixel" id="IRCamera18"></div>
+                <div class="ir-pixel" id="IRCamera19"></div>
+                <div class="ir-pixel" id="IRCamera20"></div>
+                <div class="ir-pixel" id="IRCamera21"></div>
+                <div class="ir-pixel" id="IRCamera22"></div>
+                <div class="ir-pixel" id="IRCamera23"></div>
+                <div class="ir-pixel" id="IRCamera24"></div>
+                <div class="ir-pixel" id="IRCamera25"></div>
+                <div class="ir-pixel" id="IRCamera26"></div>
+                <div class="ir-pixel" id="IRCamera27"></div>
+                <div class="ir-pixel" id="IRCamera28"></div>
+                <div class="ir-pixel" id="IRCamera29"></div>
+                <div class="ir-pixel" id="IRCamera30"></div>
+                <div class="ir-pixel" id="IRCamera31"></div>
+                <div class="ir-pixel" id="IRCamera32"></div>
+                <div class="ir-pixel" id="IRCamera33"></div>
+                <div class="ir-pixel" id="IRCamera34"></div>
+                <div class="ir-pixel" id="IRCamera35"></div>
+                <div class="ir-pixel" id="IRCamera36"></div>
+                <div class="ir-pixel" id="IRCamera37"></div>
+                <div class="ir-pixel" id="IRCamera38"></div>
+                <div class="ir-pixel" id="IRCamera39"></div>
+                <div class="ir-pixel" id="IRCamera40"></div>
+                <div class="ir-pixel" id="IRCamera41"></div>
+                <div class="ir-pixel" id="IRCamera42"></div>
+                <div class="ir-pixel" id="IRCamera43"></div>
+                <div class="ir-pixel" id="IRCamera44"></div>
+                <div class="ir-pixel" id="IRCamera45"></div>
+                <div class="ir-pixel" id="IRCamera46"></div>
+                <div class="ir-pixel" id="IRCamera47"></div>
+                <div class="ir-pixel" id="IRCamera48"></div>
+                <div class="ir-pixel" id="IRCamera49"></div>
+                <div class="ir-pixel" id="IRCamera50"></div>
+                <div class="ir-pixel" id="IRCamera51"></div>
+                <div class="ir-pixel" id="IRCamera52"></div>
+                <div class="ir-pixel" id="IRCamera53"></div>
+                <div class="ir-pixel" id="IRCamera54"></div>
+                <div class="ir-pixel" id="IRCamera55"></div>
+                <div class="ir-pixel" id="IRCamera56"></div>
+                <div class="ir-pixel" id="IRCamera57"></div>
+                <div class="ir-pixel" id="IRCamera58"></div>
+                <div class="ir-pixel" id="IRCamera59"></div>
+                <div class="ir-pixel" id="IRCamera60"></div>
+                <div class="ir-pixel" id="IRCamera61"></div>
+                <div class="ir-pixel" id="IRCamera62"></div>
+                <div class="ir-pixel" id="IRCamera63"></div>
+                <div class="ir-pixel" id="IRCamera64"></div>
+	</div>
+	</center>
+</body>
+</html>
