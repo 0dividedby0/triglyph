@@ -46,6 +46,7 @@ app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 
 app.post('/serialData', function(req, res) {
 	console.log('Receiving data: ');
+//    console.log(req);
     console.log(req.body.message);
     res.send(req.body);
 });
