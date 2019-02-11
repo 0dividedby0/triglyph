@@ -17,12 +17,13 @@ WiFiClient client;
 //IR Camera Library
 Adafruit_AMG88xx amg;
 float pixels[AMG88xx_PIXEL_ARRAY_SIZE];
+String IRData;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
   Serial.begin(115200);
-//  Wire.begin(23, 22, 100000);
-//  Wire.begin();
+//  Wire.begin(23, 22, 100000); //Not needed when using the amg.begin from the AMG library
+//  Wire.begin();               //amg begin contains the wire.begin function
   WiFi.begin(ssid, password);
 
   bool status;
@@ -64,9 +65,19 @@ void loop() {
     data[3] = Wire.read();
     CO2ppmValue = ((data[2] & 0x3F) << 8) | data[3];
 
-    Serial.println(CO2ppmValue);
+    //IR Camera Read Data
+    amg.readPixels(pixels);
+    for(int i=1; i<=AMG88xx_PIXEL_ARRAY_SIZE; i++){
+      if(i == 1) {
+        IRData = pixels[i-1];
+      }
+      else{
+        IRData = IRData + "," + pixels[i-1];
+      }
+    }
+
     String PostData = String("{\"message\":");
-    PostData = PostData + CO2ppmValue;
+    PostData = PostData + '"' + CO2ppmValue + "," + IRData + '"';
     PostData = PostData + "}";
     Serial.println(PostData);
 
@@ -79,15 +90,6 @@ void loop() {
     client.println();
     client.print(PostData);
 
-//IR Camera Read Data
-    amg.readPixels(pixels);
-    Serial.println();
-    Serial.print("[");
-    for(int i=1; i<=AMG88xx_PIXEL_ARRAY_SIZE; i++){
-      Serial.print(pixels[i-1]);
-      Serial.write(",");
-      if( i%8 == 0 ) Serial.println("");  //comment out to avoid new line making grid pattern
-    }
   }
   delay(5000);
 }
