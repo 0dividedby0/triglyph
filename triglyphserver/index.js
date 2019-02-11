@@ -31,15 +31,25 @@ const Carbon		= 26;
 const IRCameraStart	= 27;
 
 //MARK: Required Modules
-const app = require('express')();
+const express = require('express');
+const app = express();
 const SerialPort = require('serialport');
 const io = require('socket.io');
+
+app.use(express.json());       // to support JSON-encoded bodies
 
 //MARK: Web Server
 const port = 3000;
 var numConnected = 0;
 
 app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
+
+app.post('/serialData', function(req, res) {
+	console.log('Receiving data: ');
+//    console.log(req);
+    console.log(req.body.message);
+    res.send(req.body);
+});
 
 const server = app.listen(port, () => console.log('Server listening on port 3000'));
 
