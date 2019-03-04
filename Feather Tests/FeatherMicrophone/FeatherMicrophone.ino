@@ -55,19 +55,19 @@ void IRAM_ATTR onTimer() {
   
   somme >>= 5;
   
-  Serial.println(somme);
+//  Serial.println(somme);
   
-//  portENTER_CRITICAL_ISR(&timerMux); // says that we want to run critical code and don't want to be interrupted
-//  uint8_t value = map(somme, 0 , 4096, 0, 255);  // converts the value to 0..255 (8bit)
-//  audioBuffer[bufferPointer] = value; // stores the value
-//  bufferPointer++;
-// 
-//  if (bufferPointer == AUDIO_BUFFER_MAX) { // when the buffer is full
-//    bufferPointer = 0;
-//    memcpy(transmitBuffer, audioBuffer, AUDIO_BUFFER_MAX); // copy buffer into a second buffer
-//    transmitNow = true; // sets the value true so we know that we can transmit now
-//  }
-//  portEXIT_CRITICAL_ISR(&timerMux); // says that we have run our critical code
+  portENTER_CRITICAL_ISR(&timerMux); // says that we want to run critical code and don't want to be interrupted
+  uint8_t value = map(somme, 0 , 4096, 0, 255);  // converts the value to 0..255 (8bit)
+  audioBuffer[bufferPointer] = value; // stores the value
+  bufferPointer++;
+ 
+  if (bufferPointer == AUDIO_BUFFER_MAX) { // when the buffer is full
+    bufferPointer = 0;
+    memcpy(transmitBuffer, audioBuffer, AUDIO_BUFFER_MAX); // copy buffer into a second buffer
+    transmitNow = true; // sets the value true so we know that we can transmit now
+  }
+  portEXIT_CRITICAL_ISR(&timerMux); // says that we have run our critical code
 }
 
 // the setup function runs once when you press reset or power the board

@@ -133,21 +133,8 @@ void loop() {
     
      somme >>= 5;
 
-      Serial.println(somme);
+     Serial.println(somme);
 
-      uint8_t value = map(somme, 0 , 4096, 0, 255);  // converts the value to 0..255 (8bit)
-      audioBuffer[bufferPointer] = value; // stores the value
-      bufferPointer++;
- 
-     if (bufferPointer == AUDIO_BUFFER_MAX) { // when the buffer is full
-      bufferPointer = 0;
-      memcpy(transmitBuffer, audioBuffer, AUDIO_BUFFER_MAX); // copy buffer into a second buffer
-      transmitNow = true; // sets the value true so we know that we can transmit now
-     }
-     if (transmitNow) { // checks if the buffer is full
-      transmitNow = false;
-      client.write((const uint8_t *)audioBuffer, sizeof(audioBuffer)); // sending the buffer to our server
-     }
      countm = 0;
    }
    count++;
