@@ -56,7 +56,7 @@ void loop() {
     Wire.write(0x01);
     Wire.endTransmission();
 
-    delay(10);
+    //delay(10);
 
     Wire.requestFrom(CO2_ADDR,4);
     data[0] = Wire.read();  //not all reads from the CO2 sensor are relevant
