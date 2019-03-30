@@ -1,3 +1,5 @@
+#include <Triglyph_Sensors.h>
+Triglyph_Sensors ts = Triglyph_Sensors();
 #include <Adafruit_AMG88xx.h>
 #include <WiFi.h>
 #include <Wire.h>
@@ -5,8 +7,17 @@
 //I2C SDA 23, SCL 22, Speed 100kHz
 #define LED_BUILTIN 13
 #define CO2_ADDR 0x15     //CO2 Sensor I2C Address
-int data [3];
 int CO2ppmValue = 0;
+#define BM1383_ADDR 0x5D
+float BM1383_Pres = 0;
+#define BH1745_ADDR 0x38
+int RGB [3];
+#define KMX62_ADDR 0x0E
+float Accel[3];
+float Mag[3];
+
+int Hall_S = 0;
+int Hall_N = 0;
 
 //WiFi 
 char* ssid = "PiFi";
@@ -21,19 +32,20 @@ String IRData;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  Serial.begin(115200);
+//  Serial.begin(115200);
+  
 //  Wire.begin(23, 22, 100000); //Not needed when using the amg.begin from the AMG library
 //  Wire.begin();               //amg begin contains the wire.begin function
   WiFi.begin(ssid, password);
-
+//
   bool status;
-
+//
   status = amg.begin();
   if (!status) {
     Serial.println("Could not find AMG88xx (IR Camera) Check wiring!");
     while(1);
   }
-
+//
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.println("Connecting to WiFi..");
@@ -42,29 +54,53 @@ void setup() {
   Serial.println("Connected to the WiFi network");
 
   Serial.println(WiFi.localIP());
+  ts.Initialize_BM1383();
+  ts.Initialize_BH1745();
+  ts.Initialize_KMX62();
+  
   delay(100);   //Wait for everything to be booted up
+
 }
 
 // the loop function runs over and over again forever
 void loop() {
  if (client.connect(server, 3000)) {
-    Wire.beginTransmission(CO2_ADDR);
-    Wire.write(0x04); //write function code
-    Wire.write(0x13); //write data adress
-    Wire.write(0x8B); 
-    Wire.write(0x00);
-    Wire.write(0x01);
-    Wire.endTransmission();
 
-    //delay(10);
+    CO2ppmValue = ts.read_CO2_ppm(CO2_ADDR);
+    ts.read_BH1745_color(BH1745_ADDR,RGB);
+    ts.read_KMX62_mag(Mag);
+    ts.read_KMX62_accel(Accel);    
+    BM1383_Pres = ts.read_BM1383_pressure(BM1383_ADDR);
+    Hall_S = ts.Hall_Detect_South();
+    Hall_N = ts.Hall_Detect_North();
 
-    Wire.requestFrom(CO2_ADDR,4);
-    data[0] = Wire.read();  //not all reads from the CO2 sensor are relevant
-    data[1] = Wire.read();
-    data[2] = Wire.read();
-    data[3] = Wire.read();
-    CO2ppmValue = ((data[2] & 0x3F) << 8) | data[3];
-
+//    Serial.print("CO2:");
+//    Serial.println(CO2ppmValue);
+//    Serial.print("Pressure:");
+//    Serial.println(BM1383_Pres);
+//    Serial.print("Red:");
+//    Serial.println(RGB[0]);
+//    Serial.print("Green:");
+//    Serial.println(RGB[1]);
+//    Serial.print("Blue:");
+//    Serial.println(RGB[2]);
+//    Serial.print("MagX:");
+//    Serial.println(Mag[0]);
+//    Serial.print("MagY:");
+//    Serial.println(Mag[1]);
+//    Serial.print("MagZ:");
+//    Serial.println(Mag[2]);
+//    Serial.print("AccelX:");
+//    Serial.println(Accel[0]);
+//    Serial.print("AccelY:");
+//    Serial.println(Accel[1]);    
+//    Serial.print("AccelZ:");
+//    Serial.println(Accel[2]); 
+//    Serial.print("Hall_N:");
+//    Serial.println(Hall_N);
+//    Serial.print("Hall_S:");
+//    Serial.println(Hall_S);     
+    
     //IR Camera Read Data
     amg.readPixels(pixels);
     for(int i=1; i<=AMG88xx_PIXEL_ARRAY_SIZE; i++){
@@ -76,8 +112,11 @@ void loop() {
       }
     }
 
+   // Serial.println("IRData:");
+   // Serial.println(IRData);
+
     String PostData = String("{\"message\":");
-    PostData = PostData + '"' + CO2ppmValue + "," + IRData + '"';
+    PostData = PostData + '"' + CO2ppmValue + "," + BM1383_Pres + "," + Hall_S + "," + Hall_N + '"';
     PostData = PostData + "}";
     Serial.println(PostData);
 
@@ -91,5 +130,5 @@ void loop() {
     client.print(PostData);
 
   }
-  delay(5000);
+  delay(100);
 }
