@@ -1,5 +1,20 @@
 <!doctype html>
 <html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+
+<script>
+        var app = angular.module('myApp', []);
+        app.controller('myCtrl', function($scope) {
+            $scope.firstName= "John";
+            $scope.lastName= "Doe";
+            $scope.sensors = [
+            {name:'C02',country:'Norway'},
+            {name:'IR',country:'Sweden'},
+            {name:'Microphone',country:'Denmark'}
+          ];
+        });
+        </script>
+
 <head>
     <style>
     h2 {
@@ -25,7 +40,7 @@
         }
     </style>
 </head>
-<body>
+<body ng-app="myApp" ng-controller="myCtrl">
     <div id ="mySensor"></div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -214,8 +229,8 @@
     <button onclick="resetPressed()">Reset</button>
     <br></center>
     
-    <h2>Feather 1</h2>
-    <div class="dataCollection">
+    <div class="dataCollection" ng-repeat="x in sensors">
+        <h2>Feather 1</h2>
         <div class="dataCell">
             <p>Temperature: <input class="threshold" type="text" id="tempThreshold" placeholder="Enter Threshold Value"></p>
             <p>Barometric Pressure: <input class="threshold" type="text" id="xThreshold" placeholder="Enter Threshold Value"></p>
