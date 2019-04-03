@@ -1,275 +1,156 @@
 <!doctype html>
 <html>
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 
 <script>
-        var app = angular.module('myApp', []);
-        app.controller('myCtrl', function($scope) {
-            $scope.firstName= "John";
-            $scope.lastName= "Doe";
-            $scope.sensors = [
-            {name:'C02',country:'Norway'},
-            {name:'IR',country:'Sweden'},
-            {name:'Microphone',country:'Denmark'}
-          ];
-        });
-        </script>
+    var app = angular.module('myApp', []);
+    // var socket = io();
+    app.controller('myCtrl', function($scope) {
+    //     function playPressed () {
+    //         socket.emit('play');
+    //     }
+
+    //     function pausePressed () {
+    //         socket.emit('pause');
+    //     }
+
+    //     function resetPressed () {
+    //         socket.emit('reset');
+    //         location.reload();
+    //     }
+
+    //     socket.on('message', function(message) {
+    //         document.getElementById("message").innerHTML = (message + "<br>");
+    //     });
+    //     socket.on('serialopen', function (baud) {
+    //         document.getElementById("message").innerHTML = ("Opened serial port with baud rate: " + baud + "<br>");
+    //     });
+
+    //     socket.on('serialclosed', function () {
+    //         document.getElementById("message").innerHTML = ("Serial port closed" + "<br>");
+    //     });
+
+    //     socket.on('serialerror', function () {
+    //         document.getElementById("message").innerHTML = ("Serial port error!!!" + "<br>");;
+    //     });     
+
+    //     socket.on('newData', function (sampleTime, results) {
+            
+    //     });
+
+        $scope.firstName= "John";
+        $scope.lastName= "Doe";
+        $scope.sensors = [
+        {name:'Feather 1',co2:12,barometric:228,temp:42,uv:42,ambient:42,prox:42,north:42,south:42,magx:42,magy:42,magz:42,gyrox:42,gyroy:42,gyroz:42,red:42, green:42,blue:42},
+        {name:'Feather 2',co2:12,barometric:228,temp:42,uv:42,ambient:42,prox:42,north:42,south:42,magx:42,magy:42,magz:42,gyrox:42,gyroy:42,gyroz:42,red:42, green:42,blue:42},
+        {name:'Feather 3',co2:12,barometric:228,temp:42,uv:42,ambient:42,prox:42,north:42,south:42,magx:42,magy:42,magz:42,gyrox:42,gyroy:42,gyroz:42,red:42, green:42,blue:42}
+        ];
+    });
+</script>
 
 <head>
     <style>
     h2 {
          display: inline;
     }
-        .dataCollection {
-            width: 100%;
-            border: 3px solid black;
-        }
-        .dataCell {
-            border: 1px solid black;
-            display: inline-block
-        }
-        .current {
-            display: inline;
-            padding: 0px;
-            margin: 0px;
-        }
-        .threshold {
-            display: inline;
-            padding: 0px;
-            margin: 0px;
-        }
+    .dataCollection {
+        width: 99%;
+        border: 3px solid black;
+        border-radius: 20px;
+        margin-bottom: 15px;
+        padding: 5px;
+    }
+    .dataCell {
+        display: inline-block;
+        width: 14%;
+        margin-right: 15px;
+        margin-left: 15px;
+        vertical-align: top;
+        text-align: left;
+    }
+    .threshold {
+        padding: 0px;
+        margin: 0px;
+        width: 85px;
+        float: right;
+    }
+    .vl {
+        border-right: 1px solid black;
+        height: 150px;
+        display: inline-block;
+        vertical-align: top;
+    }
     </style>
 </head>
+
 <body ng-app="myApp" ng-controller="myCtrl">
-    <div id ="mySensor"></div>
-
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-        //MARK: Sensor Index Definitions
-        const Temp          = 0; //BDE0600G (Degrees Celsius)
-        const UVSensor      = 1; //ML8511 (mW/cm2)
-        const SouthDetect   = 2; //BU52011HFV (0 = magnet, 1 = no magnet)
-        const NorthDetect   = 3; //BU52011HFV (1 = magnet, 0 = no magnet)
-        const AccelX        = 4; //KMX62 (G)
-        const AccelY        = 5; //KMX62 (G)
-        const AccelZ        = 6; //KMX62 (G)
-        const MagX          = 7; //KMX62 (uT)
-        const MagY          = 8; //KMX62 (uT)
-        const MagZ          = 9; //KMX62 (uT)
-//      const Temp2         = 10; //BM1383A (Degrees Celsius)
-//      const Pressure      = 11; //BM1383A (hPa)
-        const Temp3         = 10; //BM1383 (Degrees Celsius)
-        const Pressure2     = 11; //BM1383 (hPa)
-        const Proximity     = 12; //RPR-0521 (ADC Count)
-        const AmbientLight  = 13; //RPR-0521 (Lx)
-        const Red           = 14; //BH1745 (ADC Count)
-        const Green         = 15; //BH1745 (ADC Count)
-        const Blue          = 16; //BH1745 (ADC Count)
-        const AccelX2       = 17; //KX122 (G)
-        const AccelY2       = 18; //KX122 (G)
-        const AccelZ2       = 19; //KX122 (G)
-        const GyroX         = 20; //KXG03 (deg/sec)
-        const GyroY         = 21; //KXG03 (deg/sec)
-        const GyroZ         = 22; //KXG03 (deg/sec)
-        const MagX2         = 23; //BM1422 (uT)
-        const MagY2         = 24; //BM1422 (uT)
-        const MagZ2         = 25; //BM1422 (uT)
-        const Carbon        = 26;
-        const IRCameraStart = 27;
-    
-        var socket = io();
-
-        function sensorSelectionChanged(selectedSensors) {
-            socket.emit('sensorSelectionChanged', selectedSensors);
-        }
-
-        function playPressed () {
-            socket.emit('play');
-        }
-
-        function pausePressed () {
-            socket.emit('pause');
-        }
-
-        function resetPressed () {
-            socket.emit('reset');
-            location.reload();
-        }
-
-        socket.on('message', function(message) {
-            document.getElementById("message").innerHTML = (message + "<br>");
-        });
-        socket.on('serialopen', function (baud) {
-            document.getElementById("message").innerHTML = ("Opened serial port with baud rate: " + baud + "<br>");
-        });
-
-        socket.on('serialclosed', function () {
-            document.getElementById("message").innerHTML = ("Serial port closed" + "<br>");
-        });
-
-        socket.on('serialerror', function () {
-            document.getElementById("message").innerHTML = ("Serial port error!!!" + "<br>");;
-        });     
-
-        socket.on('newData', function (sampleTime, results) {
-            // document.body.innerHTML += (sampleTime + ': ');
-//          for (var i = 0; i < results.length; i++) {
-//              document.body.innerHTML += (results[i] + ', ');
-//          }
-//          document.body.innerHTML += "<br>";
-            for (var i = 1; i < results.length+1; i++) {
-//                  if (i > (IRCameraStart-1)) {
-//                     var red = 0;
-//                     var green = 0;
-//                     var blue = 0;
-//                     if (results[i] < 26.5) {
-//                         red = Math.round(results[i]*39.231-784.62);
-//                         green = 0;
-//                         blue = 255;
-//                     }
-//                     else if (results[i] < 33) {
-//                         red = 255;
-//                         green = 0;
-//                         blue = Math.round(results[i]*(-39.231)+1294.625);
-//                     }
-//                     else {
-//                         red = 255;
-//                         green = Math.round(results[i]*36.43-1202.14);
-//                         blue = 0;
-//                     }
-//                     // green = Math.round(results[i]*(12.75)-255);
-// //                      blue = Math.round(results[i]*(-8.5)+340);
-// //                      red = 255;
-//                     document.getElementById("IRCamera" + (i-(IRCameraStart-1))).style.backgroundColor = 'rgb(' + red + ', ' + green + ', ' + blue + ')';
-//                  }
-                
-                (results[Temp] > document.getElementById("tempThreshold").value) && (document.getElementById("tempThreshold").value.length > 0) ? document.getElementById("tempSensorCurrent").style.color = "red" : document.getElementById("tempSensorCurrent").style.color = "black";
-                document.getElementById("tempSensorCurrent").innerHTML = results[Temp] + " C";
-                
-                threshold = document.getElementById("xAccelThreshold");
-                current = document.getElementById("xAccelSensorCurrent");
-                current.innerHTML = "X: " + results[AccelX] + " Gs";
-                (results[AccelX] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                threshold = document.getElementById("yAccelThreshold");
-                current = document.getElementById("yAccelSensorCurrent");
-                (results[AccelY] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = "Y: " + results[AccelY] + " Gs";
-                threshold = document.getElementById("zAccelThreshold");
-                current = document.getElementById("zAccelSensorCurrent");
-                (results[AccelZ] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = "Z: " + results[AccelZ] + " Gs";
-                
-                threshold = document.getElementById("xMagThreshold");
-                current = document.getElementById("xMagSensorCurrent");
-                (results[MagX2] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = "X: " + results[MagX2] + " uT";
-                threshold = document.getElementById("yMagThreshold");
-                current = document.getElementById("yMagSensorCurrent");
-                (results[MagY2] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = "Y: " + results[MagY2] + " uT";
-                threshold = document.getElementById("zMagThreshold");
-                current = document.getElementById("zMagSensorCurrent");
-                (results[MagZ2] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = "Z: " + results[MagZ2] + " uT";
-                
-                threshold = document.getElementById("pressThreshold");
-                current = document.getElementById("pressSensorCurrent");
-                (results[Pressure2] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = results[Pressure2] + " hPa";
-                
-                threshold = document.getElementById("proxThreshold");
-                current = document.getElementById("proxSensorCurrent");
-                (results[Proximity] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = results[Proximity] + " cm";
-                
-                threshold = document.getElementById("ambThreshold");
-                current = document.getElementById("ambSensorCurrent");
-                (results[AmbientLight] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = results[AmbientLight] + " lx";
-                
-                threshold = document.getElementById("redThreshold");
-                current = document.getElementById("redSensorCurrent");
-                (results[Red] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = "Red: " +  results[Red];
-                threshold = document.getElementById("greenThreshold");
-                current = document.getElementById("greenSensorCurrent");
-                (results[Green] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "green" : current.style.color = "black";
-                current.innerHTML = "Green: " + results[Green];
-                threshold = document.getElementById("blueThreshold");
-                current = document.getElementById("blueSensorCurrent");
-                (results[Blue] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "blue" : current.style.color = "black";
-                current.innerHTML = "Blue: " + results[Blue];
-                
-                threshold = document.getElementById("xGyroThreshold");
-                current = document.getElementById("xGyroSensorCurrent");
-                (results[GyroX] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = "X: " + results[GyroX] + " deg/s";
-                threshold = document.getElementById("yGyroThreshold");
-                current = document.getElementById("yGyroSensorCurrent");
-                (results[GyroY] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = "Y: " + results[GyroY] + " deg/s";
-                threshold = document.getElementById("zGyroThreshold");
-                current = document.getElementById("zGyroSensorCurrent");
-                (results[GyroZ] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = "Z: " + results[GyroZ] + " deg/s";
-                
-                threshold = document.getElementById("co2Threshold");
-                current = document.getElementById("co2SensorCurrent");
-                (results[Carbon] > threshold.value) && (threshold.value.length > 0) ? current.style.color = "red" : current.style.color = "black";
-                current.innerHTML = results[Carbon] + " ppm";
-            }
-        });
-
-    </script>
     
     <center>
     <h1>Triglyph Data Feed</h1>
+    <p id="message">Welcome!</p>
     <button onclick="playPressed()">Play</button>
     <button onclick="pausePressed()">Pause</button>
     <button onclick="resetPressed()">Reset</button>
-    <br></center>
+    <br>
+    </center>
     
     <div class="dataCollection" ng-repeat="x in sensors">
-        <h2>Feather 1</h2>
+        <h2 style="padding-left:15px;padding-right:15px;">{{x.name}}</h2>
+        <button onclick="">Show IR</button>
+        <button onclick="">Play Audio</button>
+        <hr>
+        <center>
         <div class="dataCell">
-            <p>Temperature: <input class="threshold" type="text" id="tempThreshold" placeholder="Enter Threshold Value"></p>
-            <p>Barometric Pressure: <input class="threshold" type="text" id="xThreshold" placeholder="Enter Threshold Value"></p>
-            <p>CO2: <input class="threshold" type="text" id="co2Threshold" placeholder="Enter Threshold Value"></p>
+            <div style="text-align:center;font-weight: bold;">Environmental</div>
+            <p>Temperature: {{x.temp}}<input class="threshold" type="text" id="tempThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Pressure: {{x.barometric}}<input class="threshold" type="text" id="xThreshold" placeholder="Enter Threshold Value"></p>
+            <p>CO2: {{x.co2}}<input class="threshold" type="text" id="co2Threshold" placeholder="Enter Threshold Value"></p>
         </div>
 
+        <div class="vl"></div>
+
         <div class="dataCell">
-            <p>UV: <input class="threshold" type="text" id="xThreshold" placeholder="Enter Threshold Value"></p>
-            <p>Ambient Light: <input class="threshold" type="text" id="ambThreshold" placeholder="Enter Threshold Value"></p>
-            <p>Proximity: <input class="threshold" type="text" id="proxThreshold" placeholder="Enter Threshold Value"></p>
-        </div>               
-
-        <div class="dataCell"><p style="text-align:center;">Hall Effect</p>
-            <p>North: <input class="threshold" type="text" id="nHallThreshold" placeholder="Enter Threshold Value"></p>
-            <p>South: <input class="threshold" type="text" id="sHallThreshold" placeholder="Enter Threshold Value"></p>
-        </div>
-
-        <div class="dataCell"><p style="text-align:center;">Magnometer</p>
-            <p>X: <input class="threshold" type="text" id="xMagThreshold" placeholder="Enter Threshold Value"></p>
-            <p>Y: <input class="threshold" type="text" id="yMagThreshold" placeholder="Enter Threshold Value"></p>
-            <p>Z: <input class="threshold" type="text" id="zMagThreshold" placeholder="Enter Threshold Value"></p>
-        </div>               
-
-        <div class="dataCell"><p style="text-align:center;">Gyroscope</p>
-            <p>X: <input class="threshold" type="text" id="xGyroThreshold" placeholder="Enter Threshold Value"></p>
-            <p>Y: <input class="threshold" type="text" id="yGyroThreshold" placeholder="Enter Threshold Value"></p>
-            <p>Z: <input class="threshold" type="text" id="zGyroThreshold" placeholder="Enter Threshold Value"></p>
-        </div>   
-
-        <div class="dataCell"><p style="text-align:center;">RGB</p>
-            <p>X: <input class="threshold" type="text" id="redThreshold" placeholder="Enter Threshold Value"></p>
-            <p>Y: <input class="threshold" type="text" id="greenThreshold" placeholder="Enter Threshold Value"></p>
-            <p>Z: <input class="threshold" type="text" id="blueThreshold" placeholder="Enter Threshold Value"></p>
+            <div style="text-align:center;font-weight: bold;">Light</div>
+            <p>UV: {{x.uv}}<input class="threshold" type="text" id="xThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Light: {{x.ambient}}<input class="threshold" type="text" id="ambThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Proximity: {{x.prox}}<input class="threshold" type="text" id="proxThreshold" placeholder="Enter Threshold Value"></p>
         </div> 
+        
+        <div class="vl"></div>
+
+        <div class="dataCell">
+            <div style="text-align:center;font-weight: bold;">Hall Effect</div>
+            <p>North: {{x.north}}<input class="threshold" type="text" id="nHallThreshold" placeholder="Enter Threshold Value"></p>
+            <p>South: {{x.south}}<input class="threshold" type="text" id="sHallThreshold" placeholder="Enter Threshold Value"></p>
+        </div>
+
+        <div class="vl"></div>
+
+        <div class="dataCell">
+            <div style="text-align:center;font-weight: bold;">Magnometer</div>
+            <p>X: {{x.magx}}<input class="threshold" type="text" id="xMagThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Y: {{x.magy}}<input class="threshold" type="text" id="yMagThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Z: {{x.magz}}<input class="threshold" type="text" id="zMagThreshold" placeholder="Enter Threshold Value"></p>
+        </div> 
+        
+        <div class="vl"></div>
+
+        <div class="dataCell">
+            <div style="text-align:center;font-weight: bold;">Gyroscope</div>
+            <p>X: {{x.gyrox}}<input class="threshold" type="text" id="xGyroThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Y: {{x.gyroy}}<input class="threshold" type="text" id="yGyroThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Z: {{x.gyroz}}<input class="threshold" type="text" id="zGyroThreshold" placeholder="Enter Threshold Value"></p>
+        </div>  
+        
+        <div class="vl"></div>
+
+        <div class="dataCell">
+            <div style="text-align:center;font-weight: bold;">RGB</div>
+            <p>Red: {{x.red}}<input class="threshold" type="text" id="redThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Green: {{x.green}}<input class="threshold" type="text" id="greenThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Blue: {{x.blue}}<input class="threshold" type="text" id="blueThreshold" placeholder="Enter Threshold Value"></p>
+        </div> 
+    </center>
     </div>
-</body>
-
-  
-
-
-
 </body>
