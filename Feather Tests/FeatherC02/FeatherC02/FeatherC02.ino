@@ -22,6 +22,7 @@ int Hall_N = 0;
 //WiFi 
 char* ssid = "PiFi";
 char* password =  "morepiforme";
+String locIP;
 IPAddress server(192,168,4,1);
 WiFiClient client;
 
@@ -32,20 +33,17 @@ String IRData;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-//  Serial.begin(115200);
-  
-//  Wire.begin(23, 22, 100000); //Not needed when using the amg.begin from the AMG library
-//  Wire.begin();               //amg begin contains the wire.begin function
+  Serial.begin(115200);
   WiFi.begin(ssid, password);
-//
+
   bool status;
-//
-  status = amg.begin();
-  if (!status) {
-    Serial.println("Could not find AMG88xx (IR Camera) Check wiring!");
-    while(1);
-  }
-//
+
+//  status = amg.begin();
+//  if (!status) {
+//    Serial.println("Could not find AMG88xx (IR Camera) Check wiring!");
+//    while(1);
+//  }
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.println("Connecting to WiFi..");
@@ -53,7 +51,11 @@ void setup() {
  
   Serial.println("Connected to the WiFi network");
 
-  Serial.println(WiFi.localIP());
+  locIP = String(WiFi.localIP());
+  Serial.println(locIP);
+
+  delay(100);
+//  ts.Initialize_SI1147();
   ts.Initialize_BM1383();
   ts.Initialize_BH1745();
   ts.Initialize_KMX62();
@@ -65,7 +67,9 @@ void setup() {
 // the loop function runs over and over again forever
 void loop() {
  if (client.connect(server, 3000)) {
-
+ //   Serial.println(locIP);
+    int holder;
+    
     CO2ppmValue = ts.read_CO2_ppm(CO2_ADDR);
     ts.read_BH1745_color(BH1745_ADDR,RGB);
     ts.read_KMX62_mag(Mag);
@@ -73,9 +77,10 @@ void loop() {
     BM1383_Pres = ts.read_BM1383_pressure(BM1383_ADDR);
     Hall_S = ts.Hall_Detect_South();
     Hall_N = ts.Hall_Detect_North();
+//    holder = ts.Read_Proximity_SI1147();
 
 //    Serial.print("CO2:");
-//    Serial.println(CO2ppmValue);
+//    Serial.println(CO2ppmValue);  
 //    Serial.print("Pressure:");
 //    Serial.println(BM1383_Pres);
 //    Serial.print("Red:");
@@ -102,23 +107,35 @@ void loop() {
 //    Serial.println(Hall_S);     
     
     //IR Camera Read Data
-    amg.readPixels(pixels);
-    for(int i=1; i<=AMG88xx_PIXEL_ARRAY_SIZE; i++){
-      if(i == 1) {
-        IRData = pixels[i-1];
-      }
-      else{
-        IRData = IRData + "," + pixels[i-1];
-      }
-    }
+//    amg.readPixels(pixels);
+//    for(int i=1; i<=AMG88xx_PIXEL_ARRAY_SIZE; i++){
+//      if(i == 1) {
+//        IRData = pixels[i-1];
+//      }
+//      else{
+//        IRData = IRData + "," + pixels[i-1];
+//      }
+//    }
 
    // Serial.println("IRData:");
    // Serial.println(IRData);
 
-    String PostData = String("{\"message\":");
-    PostData = PostData + '"' + CO2ppmValue + "," + BM1383_Pres + "," + Hall_S + "," + Hall_N + '"';
-    PostData = PostData + "}";
+    String PostData = String("{\"name\":" + locIP + ",");
+    PostData = PostData + "\"co2\":" + CO2ppmValue + ",";
+    PostData = PostData + "\"pressure\":" + BM1383_Pres + ",";
+    PostData = PostData + "\"north\":" + Hall_N + ",";
+    PostData = PostData + "\"south\":" + Hall_S + ",";
+    PostData = PostData + "\"magx\":" + Mag[0] + ",";
+    PostData = PostData + "\"magy\":" + Mag[1] + ",";
+    PostData = PostData + "\"magz\":" + Mag[2] + ",";
+    PostData = PostData + "\"red\":" + RGB[0] + ",";  
+    PostData = PostData + "\"green\":" + RGB[1] + ",";
+    PostData = PostData + "\"blue\":" + RGB[2] + ",";
+    PostData = PostData + "\"acc1x\":" + Accel[0] + ",";
+    PostData = PostData + "\"acc1y\":" + Accel[1] + ",";
+    PostData = PostData + "\"acc1z\":" + Accel[2] + "}";  
     Serial.println(PostData);
+
 
     client.println("POST /serialData HTTP/1.1");
     client.println("Host: 192.168.4.1");
@@ -128,7 +145,7 @@ void loop() {
     client.println(PostData.length());
     client.println();
     client.print(PostData);
-
+    
   }
   delay(100);
 }
