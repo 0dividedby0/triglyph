@@ -147,5 +147,5 @@ void loop() {
     client.print(PostData);
     
   }
-  delay(100);
+  delay(200);
 }
