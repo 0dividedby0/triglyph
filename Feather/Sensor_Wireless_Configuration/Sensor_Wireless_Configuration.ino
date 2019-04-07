@@ -32,7 +32,7 @@ String IRData;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-//  Serial.begin(115200);
+  Serial.begin(115200);
   
 //  Wire.begin(23, 22, 100000); //Not needed when using the amg.begin from the AMG library
 //  Wire.begin();               //amg begin contains the wire.begin function
@@ -115,9 +115,11 @@ void loop() {
    // Serial.println("IRData:");
    // Serial.println(IRData);
 
-    String PostData = String("{\"message\":");
-    PostData = PostData + '"' + CO2ppmValue + "," + BM1383_Pres + "," + Hall_S + "," + Hall_N + "," + IRData'"';
-    PostData = PostData + "}";
+    String PostData = String("{\"name\": \"Feather 1\",");
+    PostData = PostData + "\"co2\":" + CO2ppmValue + ",";
+    PostData = PostData + "\"pressure\":" + BM1383_Pres + ",";
+    PostData = PostData + "\"north\":" + Hall_N + ",";
+    PostData = PostData + "\"south\":" + Hall_S + "}";
     Serial.println(PostData);
 
     client.println("POST /serialData HTTP/1.1");
