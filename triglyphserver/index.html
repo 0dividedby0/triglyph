@@ -2,40 +2,46 @@
 <html>
 
 <head>
-		<style>
+	<style>
 		h2 {
-					display: inline;
+			display: inline;
 		}
+
 		.dataCollection {
-				width: 99%;
-				border: 3px solid black;
-				border-radius: 20px;
-				margin-bottom: 15px;
-				padding: 5px;
+			width: 99%;
+			border: 3px solid black;
+			border-radius: 20px;
+			margin-bottom: 15px;
+			padding: 5px;
 		}
+
 		.dataCell {
-				display: inline-block;
-				width: 14%;
-				margin-right: 15px;
-				margin-left: 15px;
-				vertical-align: top;
-				text-align: left;
+			display: inline-block;
+			width: 14%;
+			margin-right: 15px;
+			margin-left: 15px;
+			vertical-align: top;
+			text-align: left;
 		}
+
 		.threshold {
-				padding: 0px;
-				margin: 0px;
-				width: 85px;
-				float: right;
+			padding: 0px;
+			margin: 0px;
+			width: 85px;
+			float: right;
 		}
+
 		.vl {
-				border-right: 1px solid black;
-				height: 150px;
-				display: inline-block;
-				vertical-align: top;
+			border-right: 1px solid black;
+			height: 150px;
+			display: inline-block;
+			vertical-align: top;
 		}
+
 		.color-red {
 			color: red;
 		}
+
 		.ir-pixel {
 			background-color: rgba(255, 255, 255, 0.8);
 			border: 1px solid rgba(0, 0, 0, 0.8);
@@ -43,152 +49,230 @@
 			font-size: 5px;
 			text-align: center;
 		}
-		</style>
+
+		.ir-grid {
+			display: grid;
+			grid-template-columns: auto auto auto auto auto auto auto auto;
+			padding: 5px;
+			width: 33%;
+		}
+	</style>
 </head>
 
 <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
-		var app = angular.module('myApp', []);
-		var socket = io();
-		
-		function playPressed () {
-				socket.emit('play');
-		}
+	var app = angular.module('myApp', []);
+	var socket = io();
 
-		function pausePressed () {
-				socket.emit('pause');
-		}
+	function playPressed() {
+		socket.emit('play');
+	}
 
-		function resetPressed () {
-				socket.emit('reset');
-				location.reload();
-		}
+	function pausePressed() {
+		socket.emit('pause');
+	}
 
-		app.factory('socket', function ($rootScope) {
-			var socket = io.connect();
-			return {
-				on: function (eventName, callback) {
-					socket.on(eventName, function () {  
-						var args = arguments;
-						$rootScope.$apply(function () {
-							callback.apply(socket, args);
-						});
+	function resetPressed() {
+		socket.emit('reset');
+		location.reload();
+	}
+
+	app.factory('socket', function ($rootScope) {
+		var socket = io.connect();
+		return {
+			on: function (eventName, callback) {
+				socket.on(eventName, function () {
+					var args = arguments;
+					$rootScope.$apply(function () {
+						callback.apply(socket, args);
 					});
-				},
-				emit: function (eventName, data, callback) {
-					socket.emit(eventName, data, function () {
-						var args = arguments;
-						$rootScope.$apply(function () {
-							if (callback) {
-								callback.apply(socket, args);
-							}
-						});
-					})
-				}
-			};
+				});
+			},
+			emit: function (eventName, data, callback) {
+				socket.emit(eventName, data, function () {
+					var args = arguments;
+					$rootScope.$apply(function () {
+						if (callback) {
+							callback.apply(socket, args);
+						}
+					});
+				})
+			}
+		};
+	});
+
+	app.controller('myCtrl', function ($scope, socket) {
+		$scope.arrays = {};
+
+		socket.on('message', function (message) {
+			document.getElementById("message").innerHTML = (message + "<br>");
 		});
 
-    app.controller('myCtrl', function($scope, socket) {
-				$scope.arrays = {};
+		socket.on('serialopen', function (baud) {
+			document.getElementById("message").innerHTML = ("Opened serial port with baud rate: " + baud + "<br>");
+		});
 
-        socket.on('message', function(message) {
-            document.getElementById("message").innerHTML = (message + "<br>");
-        });
-				
-				socket.on('serialopen', function (baud) {
-            document.getElementById("message").innerHTML = ("Opened serial port with baud rate: " + baud + "<br>");
-        });
+		socket.on('serialclosed', function () {
+			document.getElementById("message").innerHTML = ("Serial port closed" + "<br>");
+		});
 
-        socket.on('serialclosed', function () {
-            document.getElementById("message").innerHTML = ("Serial port closed" + "<br>");
-        });
+		socket.on('serialerror', function () {
+			document.getElementById("message").innerHTML = ("Serial port error!!!" + "<br>");;
+		});
 
-        socket.on('serialerror', function () {
-            document.getElementById("message").innerHTML = ("Serial port error!!!" + "<br>");;
-        });     
+		socket.on('newData', function (results) {
+			$scope.arrays[results.name] = results;
+			$scope.numberOfPixels = [].constructor(64);
 
-        socket.on('newData', function (results) {
-					$scope.arrays[results.name] = results;
-				});
+			//$scope.arrays["Test"] = { "name": "Test" }; //FOR TESTING
+			// $scope.arrays[results.name]["irCamera"] = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 400]; //FOR TESTING
 
-				$scope.arrays["Test"] = {"name": "Test"};
-				
-    });
+			let irArray = $scope.arrays[results.name]["irCamera"];
+			for (var i = 0; i < irArray.length; i++) {
+				var red = 0;
+				var green = 0;
+				var blue = 0;
+				if (irArray[i] < 26.5) {
+					red = Math.round(irArray[i] * 39.231 - 784.62);
+					green = 0;
+					blue = 255;
+				}
+				else if (irArray[i] < 33) {
+					red = 255;
+					green = 0;
+					blue = Math.round(irArray[i] * (-39.231) + 1294.625);
+				}
+				else {
+					red = 255;
+					green = Math.round(irArray[i] * 36.43 - 1202.14);
+					blue = 0;
+				}
+				document.getElementById(results.name + i).style.backgroundColor = 'rgb(' + red + ', ' + green + ', ' + blue + ')';
+			}
+		});
+		//$scope.arrays["Test"] = { "name": "Test" }; //FOR TESTING
+	});
 </script>
 
 <body ng-app="myApp" ng-controller="myCtrl">
-    
-    <center>
-    <h1>Triglyph Data Feed</h1>
-    <p>{{message}}</p>
-    <button onclick="playPressed()">Play</button>
-    <button onclick="pausePressed()">Pause</button>
-    <button onclick="resetPressed()">Reset</button>
-    <br>
-    </center>
-    
-    <div ng-repeat="array in arrays">
-			<div class="dataCollection">
-        <h2 style="padding-left:15px;padding-right:15px;">{{array.name}}</h2>
-        <input type="checkbox" ng-model="Testing"> Show IR
-        <button onclick="">Play Audio</button>
-        <hr>
-        <center>
-        <div class="dataCell">
-            <div style="text-align:center;font-weight: bold;">Environmental</div>
-            <p ng-if="array.temp">Temperature: {{array.temp}}<input class="threshold" type="text" ng-model="tempThreshold" placeholder="Enter Threshold"></p>
-            <p ng-if="array.pressure" ng-class="{'color-red': pressureThresh && (array.pressure > pressureThresh)}">Pressure: {{array.pressure}}<input class="threshold" type="text" ng-model="pressureThresh" placeholder="Enter Threshold"></p>
-            <p ng-if="array.co2">CO2: {{array.co2}}<input class="threshold" type="text" ng-model="co2Threshold" placeholder="Enter Threshold"></p>
-        </div>
 
-        <div class="vl"></div>
+	<center>
+		<h1>Triglyph Data Feed</h1>
+		<p>{{message}}</p>
+		<button onclick="playPressed()">Play</button>
+		<button onclick="pausePressed()">Pause</button>
+		<button onclick="resetPressed()">Reset</button>
+		<br>
+	</center>
 
-        <div class="dataCell">
-            <div style="text-align:center;font-weight: bold;">Light</div>
-            <p ng-if="array.uv" ng-class="{'color-red': array.uv && (array.uv > uvThresh)}">UV: {{array.uv}}<input class="threshold" type="text" ng-model="uvThresh" placeholder="Enter Threshold"></p>
-            <p ng-if="array.ambient">Light: {{array.ambient}}<input class="threshold" type="text" ng-model="ambThreshold" placeholder="Enter Threshold"></p>
-            <p ng-if="array.prox">Proximity: {{array.prox}}<input class="threshold" type="text" ng-model="proxThreshold" placeholder="Enter Threshold"></p>
-        </div> 
-        
-        <div class="vl"></div>
-
-        <div class="dataCell">
-            <div style="text-align:center;font-weight: bold;">Hall Effect</div>
-            <p ng-if="array.north">North: {{array.north}}<input class="threshold" type="text" ng-model="nHallThreshold" placeholder="Enter Threshold"></p>
-            <p ng-if="array.south">South: {{array.south}}<input class="threshold" type="text" ng-model="sHallThreshold" placeholder="Enter Threshold"></p>
-        </div>
-
-        <div class="vl"></div>
-
-        <div class="dataCell">
-            <div style="text-align:center;font-weight: bold;">Magnometer</div>
-            <p ng-if="array.magx">X: {{array.magx}}<input class="threshold" type="text" ng-model="xMagThreshold" placeholder="Enter Threshold"></p>
-            <p ng-if="array.magy">Y: {{array.magy}}<input class="threshold" type="text" ng-model="yMagThreshold" placeholder="Enter Threshold"></p>
-            <p ng-if="array.magz">Z: {{array.magz}}<input class="threshold" type="text" ng-model="zMagThreshold" placeholder="Enter Threshold"></p>
-        </div> 
-        
-        <div class="vl"></div>
-
-        <div class="dataCell">
-            <div style="text-align:center;font-weight: bold;">Gyroscope</div>
-            <p ng-if="array.gyrox">X: {{array.gyrox}}<input class="threshold" type="text" ng-model="xGyroThreshold" placeholder="Enter Threshold"></p>
-            <p ng-if="array.gyroy">Y: {{array.gyroy}}<input class="threshold" type="text" ng-model="yGyroThreshold" placeholder="Enter Threshold"></p>
-            <p ng-if="array.gyroz">Z: {{array.gyroz}}<input class="threshold" type="text" ng-model="zGyroThreshold" placeholder="Enter Threshold"></p>
-        </div>  
-        
-        <div class="vl"></div>
-
-        <div class="dataCell">
-            <div style="text-align:center;font-weight: bold;">RGB</div>
-            <p ng-if="array.red">Red: {{array.red}}<input class="threshold" type="text" ng-model="redThreshold" placeholder="Enter Threshold Value"></p>
-            <p ng-if="array.green">Green: {{array.green}}<input class="threshold" type="text" ng-model="greenThreshold" placeholder="Enter Threshold Value"></p>
-            <p ng-if="array.blue">Blue: {{array.blue}}<input class="threshold" type="text" ng-model="blueThreshold" placeholder="Enter Threshold Value"></p>
+	<div ng-repeat="array in arrays">
+		<div class="dataCollection">
+			<h2 style="padding-left:15px;padding-right:15px;">{{array.name}}</h2>
+			<input type="checkbox" ng-model="showIR"> Show IR
+			<button onclick="">Play Audio</button>
+			<hr>
+			<center>
+				<div class="dataCell">
+					<div style="text-align:center;font-weight: bold;">Environmental</div>
+					<p ng-if="array.temp != null">Temperature: {{array.temp}}<input class="threshold" type="text"
+							ng-model="tempThreshold" placeholder="Enter Threshold"></p>
+					<p ng-if="array.pressure != null"
+						ng-class="{'color-red': pressureThresh && (array.pressure > pressureThresh)}">Pressure:
+						{{array.pressure}}<input class="threshold" type="text" ng-model="pressureThresh"
+							placeholder="Enter Threshold"></p>
+					<p ng-if="array.co2 != null">CO2: {{array.co2}}<input class="threshold" type="text" ng-model="co2Threshold"
+							placeholder="Enter Threshold"></p>
 				</div>
-				
-				</center>
-			</div>
-			<div ng-if="Testing">Hello World!</div>
-    </div>
+
+				<div class="vl"></div>
+
+				<div class="dataCell">
+					<div style="text-align:center;font-weight: bold;">Light</div>
+					<p ng-if="array.uv != null" ng-class="{'color-red': array.uv && (array.uv > uvThresh)}">UV:
+						{{array.uv}}<input class="threshold" type="text" ng-model="uvThresh"
+							placeholder="Enter Threshold"></p>
+					<p ng-if="array.ambient != null">Light: {{array.ambient}}<input class="threshold" type="text"
+							ng-model="ambThreshold" placeholder="Enter Threshold"></p>
+					<p ng-if="array.prox != null">Proximity: {{array.prox}}<input class="threshold" type="text"
+							ng-model="proxThreshold" placeholder="Enter Threshold"></p>
+				</div>
+
+				<div class="vl"></div>
+
+				<div class="dataCell">
+					<div style="text-align:center;font-weight: bold;">Hall Effect</div>
+					<p ng-if="array.north != null">North: {{array.north}}<input class="threshold" type="text"
+							ng-model="nHallThreshold" placeholder="Enter Threshold"></p>
+					<p ng-if="array.south != null">South: {{array.south}}<input class="threshold" type="text"
+							ng-model="sHallThreshold" placeholder="Enter Threshold"></p>
+				</div>
+
+				<div class="vl"></div>
+
+				<div class="dataCell">
+					<div style="text-align:center;font-weight: bold;">Magnometer</div>
+					<p ng-if="array.magx != null">X: {{array.magx}}<input class="threshold" type="text" ng-model="xMagThreshold"
+							placeholder="Enter Threshold"></p>
+					<p ng-if="array.magy != null">Y: {{array.magy}}<input class="threshold" type="text" ng-model="yMagThreshold"
+							placeholder="Enter Threshold"></p>
+					<p ng-if="array.magz != null">Z: {{array.magz}}<input class="threshold" type="text" ng-model="zMagThreshold"
+							placeholder="Enter Threshold"></p>
+				</div>
+
+				<div class="vl"></div>
+
+				<div class="dataCell">
+					<div style="text-align:center;font-weight: bold;">Gyroscope</div>
+					<p ng-if="array.gyrox != null">X: {{array.gyrox}}<input class="threshold" type="text"
+							ng-model="xGyroThreshold" placeholder="Enter Threshold"></p>
+					<p ng-if="array.gyroy != null">Y: {{array.gyroy}}<input class="threshold" type="text"
+							ng-model="yGyroThreshold" placeholder="Enter Threshold"></p>
+					<p ng-if="array.gyroz != null">Z: {{array.gyroz}}<input class="threshold" type="text"
+							ng-model="zGyroThreshold" placeholder="Enter Threshold"></p>
+				</div>
+
+				<div class="vl"></div>
+
+				<div class="dataCell">
+					<div style="text-align:center;font-weight: bold;">Accelerometer 1</div>
+					<p ng-if="array.acc1x != null">X: {{array.acc1x}}<input class="threshold" type="text"
+							ng-model="acc1xThreshold" placeholder="Enter Threshold"></p>
+					<p ng-if="array.acc1y != null">Y: {{array.acc1y}}<input class="threshold" type="text"
+							ng-model="acc1yThreshold" placeholder="Enter Threshold"></p>
+					<p ng-if="array.acc1z != null">Z: {{array.acc1z}}<input class="threshold" type="text"
+							ng-model="acc1zThreshold" placeholder="Enter Threshold"></p>
+				</div>
+
+				<div class="vl"></div>
+
+				<div class="dataCell">
+					<div style="text-align:center;font-weight: bold;">Accelerometer 2</div>
+					<p ng-if="array.acc2x != null">X: {{array.acc2x}}<input class="threshold" type="text"
+							ng-model="acc2xThreshold" placeholder="Enter Threshold"></p>
+					<p ng-if="array.acc2y != null">Y: {{array.acc2y}}<input class="threshold" type="text"
+							ng-model="acc2yThreshold" placeholder="Enter Threshold"></p>
+					<p ng-if="array.acc2z != null">Z: {{array.acc2z}}<input class="threshold" type="text"
+							ng-model="acc2zThreshold" placeholder="Enter Threshold"></p>
+				</div>
+
+				<div class="vl"></div>
+
+				<div class="dataCell">
+					<div style="text-align:center;font-weight: bold;">RGB</div>
+					<p ng-if="array.red != null">Red: {{array.red}}<input class="threshold" type="text" ng-model="redThreshold"
+							placeholder="Enter Threshold Value"></p>
+					<p ng-if="array.green != null">Green: {{array.green}}<input class="threshold" type="text"
+							ng-model="greenThreshold" placeholder="Enter Threshold Value"></p>
+					<p ng-if="array.blue != null">Blue: {{array.blue}}<input class="threshold" type="text"
+							ng-model="blueThreshold" placeholder="Enter Threshold Value"></p>
+				</div>
+
+			</center>
+		</div>
+		<div class="ir-grid" ng-if="showIR">
+			<div class="ir-pixel" ng-repeat="i in numberOfPixels track by $index" id="{{array.name+$index}}"></div>
+		</div>
+	</div>
 </body>

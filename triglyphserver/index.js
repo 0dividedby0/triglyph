@@ -13,7 +13,9 @@ app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 
 app.post('/serialData', function(req, res) {
 	res.send("Received data");
-	serverio.emit('newData', req.body);
+	var data = req.body;
+	data["date"] = new Date();
+	serverio.emit('newData', data);
 });
 
 const server = app.listen(port, () => console.log('Server listening on port 3000'));
