@@ -15,6 +15,7 @@ app.post('/serialData', function(req, res) {
 	res.send("Received data");
 	var data = req.body;
 	data["date"] = new Date();
+	console.log(req.body);
 	serverio.emit('newData', data);
 });
 
