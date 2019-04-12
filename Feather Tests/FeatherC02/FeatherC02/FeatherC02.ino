@@ -1,151 +1,181 @@
+#include <bmg250.h>
+#include <Adafruit_SI1145.h>
 #include <Triglyph_Sensors.h>
-Triglyph_Sensors ts = Triglyph_Sensors();
 #include <Adafruit_AMG88xx.h>
 #include <WiFi.h>
 #include <Wire.h>
- 
-//I2C SDA 23, SCL 22, Speed 100kHz
-#define LED_BUILTIN 13
-#define CO2_ADDR 0x15     //CO2 Sensor I2C Address
-int CO2ppmValue = 0;
-#define BM1383_ADDR 0x5D
-float BM1383_Pres = 0;
-#define BH1745_ADDR 0x38
-int RGB [3];
-#define KMX62_ADDR 0x0E
-float Accel[3];
-float Mag[3];
 
+//Sensor definitions
+#define LED_BUILTIN 13
+#define CO2_ADDR 0x15     
+#define BM1383_ADDR 0x5D
+#define BH1745_ADDR 0x38
+#define KMX62_ADDR 0x0E
+#define SI1147_ADDR 0x60
+#define BMG250_DEV_ADDR 0x68
+
+bool use_wifi;
+int CO2ppmValue = 0;    
+float BM1383_Pres = 0;
+int RGB [3];            
+float Accel[3];         
+float Mag[3];
+uint16_t uv_mag;        
+uint16_t ir_mag;
+uint16_t vis_mag;
+uint16_t prox_adc;
+int Gyro[3];
 int Hall_S = 0;
 int Hall_N = 0;
-
-//WiFi 
-char* ssid = "PiFi";
-char* password =  "morepiforme";
-String locIP;
-IPAddress server(192,168,4,1);
-WiFiClient client;
-
-//IR Camera Library
-Adafruit_AMG88xx amg;
 float pixels[AMG88xx_PIXEL_ARRAY_SIZE];
 String IRData;
 
-// the setup function runs once when you press reset or power the board
-void setup() {
+//Wifi information
+char* ssid = "PiFi";
+char* password =  "morepiforme";
+String local_ip;
+IPAddress server(192,168,4,1);
+
+//Class Instances
+WiFiClient client;
+Triglyph_Sensors ts = Triglyph_Sensors();
+Adafruit_SI1145 si;
+Adafruit_AMG88xx amg;
+
+//------------------------------------------------------------------------------//
+void setup() {                //runs at startup and reset
   Serial.begin(115200);
-  WiFi.begin(ssid, password);
-
-  bool status;
-
-//  status = amg.begin();
-//  if (!status) {
-//    Serial.println("Could not find AMG88xx (IR Camera) Check wiring!");
-//    while(1);
-//  }
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.println("Connecting to WiFi..");
+  delay(1000);
+  
+  use_wifi = false;
+  if(use_wifi){
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(500);
+      Serial.println("Connecting to WiFi..");
+    }
+    local_ip = String(WiFi.localIP());
+    Serial.println("Connected to the WiFi network, IP: " + local_ip);
   }
- 
-  Serial.println("Connected to the WiFi network");
+  else{}
 
-  locIP = String(WiFi.localIP());
-  Serial.println(locIP);
-
-  delay(100);
-//  ts.Initialize_SI1147();
   ts.Initialize_BM1383();
   ts.Initialize_BH1745();
   ts.Initialize_KMX62();
+  ts.Initialize_BMG250();
+  si.begin();
+
+  bool status;
+  status = amg.begin();
+  if (!status) {
+    Serial.println("Could not find AMG88xx (IR Camera) Check wiring!");
+    while(1);
+  }
   
   delay(100);   //Wait for everything to be booted up
-
 }
 
 // the loop function runs over and over again forever
 void loop() {
- if (client.connect(server, 3000)) {
- //   Serial.println(locIP);
-    int holder;
     
-    CO2ppmValue = ts.read_CO2_ppm(CO2_ADDR);
-    ts.read_BH1745_color(BH1745_ADDR,RGB);
-    ts.read_KMX62_mag(Mag);
-    ts.read_KMX62_accel(Accel);    
-    BM1383_Pres = ts.read_BM1383_pressure(BM1383_ADDR);
-    Hall_S = ts.Hall_Detect_South();
-    Hall_N = ts.Hall_Detect_North();
-//    holder = ts.Read_Proximity_SI1147();
+  CO2ppmValue = ts.read_CO2_ppm(CO2_ADDR);
+  ts.read_BH1745_color(BH1745_ADDR,RGB);
+  ts.read_KMX62_mag(Mag);
+  ts.read_KMX62_accel(Accel);    
+  BM1383_Pres = ts.read_BM1383_pressure(BM1383_ADDR);
+  Hall_S = ts.Hall_Detect_South();
+  Hall_N = ts.Hall_Detect_North();
+  uv_mag = si.readUV();
+  ir_mag = si.readIR();
+  vis_mag = si.readVisible();
+  prox_adc = si.readProx();
+  ts.read_BMG250_data(Gyro);
 
-//    Serial.print("CO2:");
-//    Serial.println(CO2ppmValue);  
-//    Serial.print("Pressure:");
-//    Serial.println(BM1383_Pres);
-//    Serial.print("Red:");
-//    Serial.println(RGB[0]);
-//    Serial.print("Green:");
-//    Serial.println(RGB[1]);
-//    Serial.print("Blue:");
-//    Serial.println(RGB[2]);
-//    Serial.print("MagX:");
-//    Serial.println(Mag[0]);
-//    Serial.print("MagY:");
-//    Serial.println(Mag[1]);
-//    Serial.print("MagZ:");
-//    Serial.println(Mag[2]);
-//    Serial.print("AccelX:");
-//    Serial.println(Accel[0]);
-//    Serial.print("AccelY:");
-//    Serial.println(Accel[1]);    
-//    Serial.print("AccelZ:");
-//    Serial.println(Accel[2]); 
-//    Serial.print("Hall_N:");
-//    Serial.println(Hall_N);
-//    Serial.print("Hall_S:");
-//    Serial.println(Hall_S);     
+ 
     
-    //IR Camera Read Data
-//    amg.readPixels(pixels);
-//    for(int i=1; i<=AMG88xx_PIXEL_ARRAY_SIZE; i++){
-//      if(i == 1) {
-//        IRData = pixels[i-1];
-//      }
-//      else{
-//        IRData = IRData + "," + pixels[i-1];
-//      }
-//    }
-
-   // Serial.println("IRData:");
-   // Serial.println(IRData);
-
-    String PostData = String("{\"name\":" + locIP + ",");
-    PostData = PostData + "\"co2\":" + CO2ppmValue + ",";
-    PostData = PostData + "\"pressure\":" + BM1383_Pres + ",";
-    PostData = PostData + "\"north\":" + Hall_N + ",";
-    PostData = PostData + "\"south\":" + Hall_S + ",";
-    PostData = PostData + "\"magx\":" + Mag[0] + ",";
-    PostData = PostData + "\"magy\":" + Mag[1] + ",";
-    PostData = PostData + "\"magz\":" + Mag[2] + ",";
-    PostData = PostData + "\"red\":" + RGB[0] + ",";  
-    PostData = PostData + "\"green\":" + RGB[1] + ",";
-    PostData = PostData + "\"blue\":" + RGB[2] + ",";
-    PostData = PostData + "\"acc1x\":" + Accel[0] + ",";
-    PostData = PostData + "\"acc1y\":" + Accel[1] + ",";
-    PostData = PostData + "\"acc1z\":" + Accel[2] + "}";  
-    Serial.println(PostData);
-
-
-    client.println("POST /serialData HTTP/1.1");
-    client.println("Host: 192.168.4.1");
-    client.println("Accept: */*");
-    client.println("Content-Type: application/json");
-    client.print("Content-Length: ");
-    client.println(PostData.length());
-    client.println();
-    client.print(PostData);
-    
+//Read IR camera data -------------------------------//
+  amg.readPixels(pixels);
+  for(int i=1; i<=AMG88xx_PIXEL_ARRAY_SIZE; i++){
+    if(i == 1) {
+      IRData = pixels[i-1];
+    }
+    else{
+      IRData = IRData + "," + pixels[i-1];
+    }
   }
-  delay(200);
+//End Read IR data ----------------------------------//
+
+
+//WIFI message JSON object construction ------------------------------//
+  String PostData = String("{\"name\":" + local_ip + ",");
+  PostData = PostData + "\"gyro_x\":" + Gyro[0] + ",";
+  PostData = PostData + "\"gyro_y\":" + Gyro[1] + ",";
+  PostData = PostData + "\"gyro_z\":" + Gyro[2] + ",";
+  PostData = PostData + "\"co2\":" + CO2ppmValue + ",";
+  PostData = PostData + "\"pressure\":" + BM1383_Pres + ",";
+  PostData = PostData + "\"north\":" + Hall_N + ",";
+  PostData = PostData + "\"south\":" + Hall_S + ",";
+  PostData = PostData + "\"magx\":" + Mag[0] + ",";
+  PostData = PostData + "\"magy\":" + Mag[1] + ",";
+  PostData = PostData + "\"magz\":" + Mag[2] + ",";
+  PostData = PostData + "\"red\":" + RGB[0] + ",";  
+  PostData = PostData + "\"green\":" + RGB[1] + ",";
+  PostData = PostData + "\"blue\":" + RGB[2] + ",";
+  PostData = PostData + "\"acc1x\":" + Accel[0] + ",";
+  PostData = PostData + "\"acc1y\":" + Accel[1] + ",";
+  PostData = PostData + "\"acc1z\":" + Accel[2] + ",";
+  PostData = PostData + "\"irArray\":[" + IRData + "],";
+  PostData = PostData + "\"ambient\":" + vis_mag + ",";
+  PostData = PostData + "\"prox\":" + prox_adc + "}";  
+  Serial.println(PostData);
+
+  if (use_wifi){
+    if (client.connect(server, 3000)) {
+      Serial.println(local_ip); 
+      client.println("POST /serialData HTTP/1.1");
+      client.println("Host: 192.168.4.1");
+      client.println("Accept: */*");
+      client.println("Content-Type: application/json");
+      client.print("Content-Length: ");
+      client.println(PostData.length());
+      client.println();
+      client.print(PostData);    
+    }
+  }
+// WIFI MESSAGE END
+
+  delay(1000);
 }
+
+void printData()  //debug tool to print all sensor data to serial
+{
+    Serial.print("CO2:");
+    Serial.println(CO2ppmValue);  
+    Serial.print("Pressure:");
+    Serial.println(BM1383_Pres);
+    Serial.print("gyro_x:");
+    Serial.println(Gyro[0]);
+    Serial.print("gyro_y:");
+    Serial.println(Gyro[1]);
+    Serial.print("gyro_z:");
+    Serial.println(Gyro[2]);
+    Serial.print("MagX:");
+    Serial.println(Mag[0]);
+    Serial.print("MagY:");
+    Serial.println(Mag[1]);
+    Serial.print("MagZ:");
+    Serial.println(Mag[2]);
+    Serial.print("AccelX:");
+    Serial.println(Accel[0]);
+    Serial.print("AccelY:");
+    Serial.println(Accel[1]);    
+    Serial.print("AccelZ:");
+    Serial.println(Accel[2]); 
+    Serial.print("Hall_N:");
+    Serial.println(Hall_N);
+    Serial.print("Hall_S:");
+    Serial.println(Hall_S);    
+    Serial.println("IRData:");
+    Serial.println(IRData);
+}
+
