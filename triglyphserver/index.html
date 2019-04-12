@@ -17,7 +17,7 @@
 
 		.dataCell {
 			display: inline-block;
-			width: 14%;
+			width: 10%;
 			margin-right: 15px;
 			margin-left: 15px;
 			vertical-align: top;
@@ -28,7 +28,7 @@
 			padding: 0px;
 			margin: 0px;
 			width: 85px;
-			float: right;
+			/* float: right; */
 		}
 
 		.vl {
@@ -124,6 +124,7 @@
 
 		socket.on('newData', function (results) {
 			$scope.arrays[results.name] = results;
+			$scope.arrays[results.name]["time"] = new Date().getTime();
 			$scope.numberOfPixels = [].constructor(64);
 
 			let irArray = $scope.arrays[results.name]["irArray"];
@@ -149,7 +150,18 @@
 				document.getElementById(results.name + i).style.backgroundColor = 'rgb(' + red + ', ' + green + ', ' + blue + ')';
 			}
 		});
-		//$scope.arrays["Test"] = { "name": "Test" }; //FOR TESTING
+		
+		setInterval(function() {
+			var currentTime = new Date().getTime();
+			var keys = Object.keys($scope.arrays);
+			for (var i = 0; i < keys.length; i++) {
+				var previousTime = $scope.arrays[keys[i]]["time"];
+				var difference = currentTime-previousTime;
+				if (difference > 5000) {
+					delete $scope.arrays[keys[i]];
+				}
+			}
+		}, 5000);
 	});
 </script>
 
@@ -160,7 +172,6 @@
 		<p>{{message}}</p>
 		<button onclick="playPressed()">Play</button>
 		<button onclick="pausePressed()">Pause</button>
-		<button onclick="resetPressed()">Reset</button>
 		<br>
 	</center>
 
@@ -168,22 +179,24 @@
 		<div class="dataCollection">
 			<h2 style="padding-left:15px;padding-right:15px;">{{array.name}}</h2>
 			<input type="checkbox" ng-model="showIR"> Show IR
-			<button onclick="">Play Audio</button>
+			<!-- <button onclick="">Play Audio</button> 
+			i in array['irArray'] track by $index-->
+			<div>Last Updated: {{array.date}}</div>
 			<hr>
 			<center>
 				<div class="dataCell">
 					<div style="text-align:center;font-weight: bold;">Environmental</div>
 					<p ng-if="array.temp != null" ng-class="{'color-red': array.temp && (array.temp > tempThreshold)}">
-						Temperature: {{array.temp}}<input class="threshold" type="text" ng-model="tempThreshold"
+						Temperature: {{array.temp}}<br><input class="threshold" type="text" ng-model="tempThreshold"
 							placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.pressure != null"
 						ng-class="{'color-red': pressureThresh && (array.pressure > pressureThresh)}">Pressure:
-						{{array.pressure}}<input class="threshold" type="text" ng-model="pressureThresh"
+						{{array.pressure}}<br><input class="threshold" type="text" ng-model="pressureThresh"
 							placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.co2 != null" ng-class="{'color-red': array.co2 && (array.co2 > co2Threshold)}">CO2:
-						{{array.co2}}<input class="threshold" type="text" ng-model="co2Threshold"
+						{{array.co2}}<br><input class="threshold" type="text" ng-model="co2Threshold"
 							placeholder="Enter Threshold"></p>
 				</div>
 
@@ -192,16 +205,16 @@
 				<div class="dataCell">
 					<div style="text-align:center;font-weight: bold;">Light</div>
 					<p ng-if="array.uv != null" ng-class="{'color-red': array.uv && (array.uv > uvThresh)}">UV:
-						{{array.uv}}<input class="threshold" type="text" ng-model="uvThresh"
+						{{array.uv}}<br><input class="threshold" type="text" ng-model="uvThresh"
 							placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.ambient != null"
 						ng-class="{'color-red': array.ambient && (array.ambient > ambThreshold)}">Light:
-						{{array.ambient}}<input class="threshold" type="text" ng-model="ambThreshold"
+						{{array.ambient}}<br><input class="threshold" type="text" ng-model="ambThreshold"
 							placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.prox != null" ng-class="{'color-red': array.prox && (array.prox > proxThreshold)}">
-						Proximity: {{array.prox}}<input class="threshold" type="text" ng-model="proxThreshold"
+						Proximity: {{array.prox}}<br><input class="threshold" type="text" ng-model="proxThreshold"
 							placeholder="Enter Threshold"></p>
 				</div>
 
@@ -211,12 +224,12 @@
 					<div style="text-align:center;font-weight: bold;">Hall Effect</div>
 					<p ng-if="array.north != null"
 						ng-class="{'color-red': array.north && (array.north > nHallThreshold)}">North:
-						{{array.north}}<input class="threshold" type="text" ng-model="nHallThreshold"
+						{{array.north}}<br><input class="threshold" type="text" ng-model="nHallThreshold"
 							placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.south != null"
 						ng-class="{'color-red': array.south && (array.south > sHallThreshold)}">South:
-						{{array.south}}<input class="threshold" type="text" ng-model="sHallThreshold"
+						{{array.south}}<br><input class="threshold" type="text" ng-model="sHallThreshold"
 							placeholder="Enter Threshold"></p>
 				</div>
 
@@ -225,15 +238,15 @@
 				<div class="dataCell">
 					<div style="text-align:center;font-weight: bold;">Magnometer</div>
 					<p ng-if="array.magx != null" ng-class="{'color-red': array.magx && (array.magx > xMagThreshold)}">
-						X: {{array.magx}}<input class="threshold" type="text" ng-model="xMagThreshold"
+						X: {{array.magx}}<br><input class="threshold" type="text" ng-model="xMagThreshold"
 							placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.magy != null" ng-class="{'color-red': array.magy && (array.magy > yMagThreshold)}">
-						Y: {{array.magy}}<input class="threshold" type="text" ng-model="yMagThreshold"
+						Y: {{array.magy}}<br><input class="threshold" type="text" ng-model="yMagThreshold"
 							placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.magz != null" ng-class="{'color-red': array.magz && (array.magz > zMagThreshold)}">
-						Z: {{array.magz}}<input class="threshold" type="text" ng-model="zMagThreshold"
+						Z: {{array.magz}}<br><input class="threshold" type="text" ng-model="zMagThreshold"
 							placeholder="Enter Threshold"></p>
 				</div>
 
@@ -242,15 +255,15 @@
 				<div class="dataCell">
 					<div style="text-align:center;font-weight: bold;">Gyroscope</div>
 					<p ng-if="array.gyrox != null"
-						ng-class="{'color-red': array.gyrox && (array.gyrox > xGyroThreshold)}">X: {{array.gyrox}}<input
+						ng-class="{'color-red': array.gyrox && (array.gyrox > xGyroThreshold)}">X: {{array.gyrox}}<br><input
 							class="threshold" type="text" ng-model="xGyroThreshold" placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.gyroy != null"
-						ng-class="{'color-red': array.gyroy && (array.gyroy > yGyroThreshold)}">Y: {{array.gyroy}}<input
+						ng-class="{'color-red': array.gyroy && (array.gyroy > yGyroThreshold)}">Y: {{array.gyroy}}<br><input
 							class="threshold" type="text" ng-model="yGyroThreshold" placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.gyroz != null"
-						ng-class="{'color-red': array.gyroz && (array.gyroz > zGyroThreshold)}">Z: {{array.gyroz}}<input
+						ng-class="{'color-red': array.gyroz && (array.gyroz > zGyroThreshold)}">Z: {{array.gyroz}}<br><input
 							class="threshold" type="text" ng-model="zGyroThreshold" placeholder="Enter Threshold"></p>
 				</div>
 
@@ -259,33 +272,16 @@
 				<div class="dataCell">
 					<div style="text-align:center;font-weight: bold;">Accelerometer 1</div>
 					<p ng-if="array.acc1x != null"
-						ng-class="{'color-red': array.acc1x && (array.acc1x > acc1xThreshold)}">X: {{array.acc1x}}<input
+						ng-class="{'color-red': array.acc1x && (array.acc1x > acc1xThreshold)}">X: {{array.acc1x}}<br><input
 							class="threshold" type="text" ng-model="acc1xThreshold" placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.acc1y != null"
-						ng-class="{'color-red': array.acc1y && (array.acc1y > acc1yThreshold)}">Y: {{array.acc1y}}<input
+						ng-class="{'color-red': array.acc1y && (array.acc1y > acc1yThreshold)}">Y: {{array.acc1y}}<br><input
 							class="threshold" type="text" ng-model="acc1yThreshold" placeholder="Enter Threshold"></p>
 
 					<p ng-if="array.acc1z != null"
-						ng-class="{'color-red': array.acc1z && (array.acc1z > acc1zThreshold)}">Z: {{array.acc1z}}<input
+						ng-class="{'color-red': array.acc1z && (array.acc1z > acc1zThreshold)}">Z: {{array.acc1z}}<br><input
 							class="threshold" type="text" ng-model="acc1zThreshold" placeholder="Enter Threshold"></p>
-				</div>
-
-				<div class="vl"></div>
-
-				<div class="dataCell">
-					<div style="text-align:center;font-weight: bold;">Accelerometer 2</div>
-					<p ng-if="array.acc2x != null"
-						ng-class="{'color-red': array.acc2x && (array.acc2x > acc2xThreshold)}">X: {{array.acc2x}}<input
-							class="threshold" type="text" ng-model="acc2xThreshold" placeholder="Enter Threshold"></p>
-
-					<p ng-if="array.acc2y != null"
-						ng-class="{'color-red': array.acc2y && (array.acc2y > acc2yThreshold)}">Y: {{array.acc2y}}<input
-							class="threshold" type="text" ng-model="acc2yThreshold" placeholder="Enter Threshold"></p>
-
-					<p ng-if="array.acc2z != null"
-						ng-class="{'color-red': array.acc2z && (array.acc2z > acc2zThreshold)}">Z: {{array.acc2z}}<input
-							class="threshold" type="text" ng-model="acc2zThreshold" placeholder="Enter Threshold"></p>
 				</div>
 
 				<div class="vl"></div>
@@ -293,16 +289,16 @@
 				<div class="dataCell">
 					<div style="text-align:center;font-weight: bold;">RGB</div>
 					<p ng-if="array.red != null" ng-class="{'color-red': array.red && (array.red > redThreshold)}">Red:
-						{{array.red}}<input class="threshold" type="text" ng-model="redThreshold"
+						{{array.red}}<br><input class="threshold" type="text" ng-model="redThreshold"
 							placeholder="Enter Threshold Value"></p>
 
 					<p ng-if="array.green != null"
 						ng-class="{'color-red': array.green && (array.green > greenThreshold)}">Green:
-						{{array.green}}<input class="threshold" type="text" ng-model="greenThreshold"
+						{{array.green}}<br><input class="threshold" type="text" ng-model="greenThreshold"
 							placeholder="Enter Threshold Value"></p>
 
 					<p ng-if="array.blue != null" ng-class="{'color-red': array.blue && (array.blue > blueThreshold)}">
-						Blue: {{array.blue}}<input class="threshold" type="text" ng-model="blueThreshold"
+						Blue: {{array.blue}}<br><input class="threshold" type="text" ng-model="blueThreshold"
 							placeholder="Enter Threshold Value"></p>
 				</div>
 

@@ -14,8 +14,9 @@ app.get('/', (req, res) => res.sendFile(__dirname + '/index.html'));
 app.post('/serialData', function(req, res) {
 	res.send("Received data");
 	var data = req.body;
-	data["date"] = new Date();
-	console.log(req.body);
+	var date = new Date();
+	data["date"] = date.getMonth() + '/' + date.getDate() + '/' + date.getFullYear() + ' - ' + date.getHours() + ':' + (date.getMinutes()<10?'0':'') + date.getMinutes() + ':' + (date.getSeconds()<10?'0':'') + date.getSeconds();
+	// console.log(req.body);
 	serverio.emit('newData', data);
 });
 
