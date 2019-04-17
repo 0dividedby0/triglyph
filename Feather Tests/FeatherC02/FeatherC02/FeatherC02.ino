@@ -47,17 +47,17 @@ void setup() {                //runs at startup and reset
   Serial.begin(115200);
   delay(1000);
   
-  use_wifi = false;
-  if(use_wifi){
-    WiFi.begin(ssid, password);
-    while (WiFi.status() != WL_CONNECTED) {
-      delay(500);
-      Serial.println("Connecting to WiFi..");
-    }
-    local_ip = String(WiFi.localIP());
-    Serial.println("Connected to the WiFi network, IP: " + local_ip);
-  }
-  else{}
+//  use_wifi = false;
+//  if(use_wifi){
+//    WiFi.begin(ssid, password);
+//    while (WiFi.status() != WL_CONNECTED) {
+//      delay(500);
+//      Serial.println("Connecting to WiFi..");
+//    }
+//    local_ip = String(WiFi.localIP());
+//    Serial.println("Connected to the WiFi network, IP: " + local_ip);
+//  }
+//  else{}
 
   ts.Initialize_BM1383();
   ts.Initialize_BH1745();
@@ -90,7 +90,7 @@ void loop() {
   vis_mag = si.readVisible();
   prox_adc = si.readProx();
   ts.read_BMG250_data(Gyro);
-
+  Serial.println(prox_adc);
  
     
 //Read IR camera data -------------------------------//
@@ -127,55 +127,24 @@ void loop() {
   PostData = PostData + "\"irArray\":[" + IRData + "],";
   PostData = PostData + "\"ambient\":" + vis_mag + ",";
   PostData = PostData + "\"prox\":" + prox_adc + "}";  
-  Serial.println(PostData);
+//  Serial.println(PostData);
 
-  if (use_wifi){
-    if (client.connect(server, 3000)) {
-      Serial.println(local_ip); 
-      client.println("POST /serialData HTTP/1.1");
-      client.println("Host: 192.168.4.1");
-      client.println("Accept: */*");
-      client.println("Content-Type: application/json");
-      client.print("Content-Length: ");
-      client.println(PostData.length());
-      client.println();
-      client.print(PostData);    
-    }
-  }
+//  if (use_wifi){
+//    if (client.connect(server, 3000)) {
+//      Serial.println(local_ip); 
+//      client.println("POST /serialData HTTP/1.1");
+//      client.println("Host: 192.168.4.1");
+//      client.println("Accept: */*");
+//      client.println("Content-Type: application/json");
+//      client.print("Content-Length: ");
+//      client.println(PostData.length());
+//      client.println();
+//      client.print(PostData);    
+//    }
+//  }
 // WIFI MESSAGE END
+  
 
-  delay(1000);
-}
-
-void printData()  //debug tool to print all sensor data to serial
-{
-    Serial.print("CO2:");
-    Serial.println(CO2ppmValue);  
-    Serial.print("Pressure:");
-    Serial.println(BM1383_Pres);
-    Serial.print("gyro_x:");
-    Serial.println(Gyro[0]);
-    Serial.print("gyro_y:");
-    Serial.println(Gyro[1]);
-    Serial.print("gyro_z:");
-    Serial.println(Gyro[2]);
-    Serial.print("MagX:");
-    Serial.println(Mag[0]);
-    Serial.print("MagY:");
-    Serial.println(Mag[1]);
-    Serial.print("MagZ:");
-    Serial.println(Mag[2]);
-    Serial.print("AccelX:");
-    Serial.println(Accel[0]);
-    Serial.print("AccelY:");
-    Serial.println(Accel[1]);    
-    Serial.print("AccelZ:");
-    Serial.println(Accel[2]); 
-    Serial.print("Hall_N:");
-    Serial.println(Hall_N);
-    Serial.print("Hall_S:");
-    Serial.println(Hall_S);    
-    Serial.println("IRData:");
-    Serial.println(IRData);
+  delay(100);
 }
 
