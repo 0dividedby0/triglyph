@@ -59,24 +59,22 @@
 	</style>
 </head>
 
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<script src="angular/angular.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 
 <script>
 	var app = angular.module('myApp', []);
 	var socket = io();
+	var paused = false;
 
 	function playPressed() {
 		socket.emit('play');
+		paused = false;
 	}
 
 	function pausePressed() {
 		socket.emit('pause');
-	}
-
-	function resetPressed() {
-		socket.emit('reset');
-		location.reload();
+		paused = true;
 	}
 
 	app.factory('socket', function ($rootScope) {
@@ -158,7 +156,7 @@
 				var previousTime = $scope.arrays[keys[i]]["time"];
 				var difference = currentTime-previousTime;
 				if (difference > 5000) {
-					delete $scope.arrays[keys[i]];
+					if (!paused) delete $scope.arrays[keys[i]];
 				}
 			}
 		}, 5000);
