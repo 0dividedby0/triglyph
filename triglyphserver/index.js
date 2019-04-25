@@ -21,9 +21,15 @@ app.post('/serialData', function(req, res) {
 	if (!paused) serverio.emit('newData', data);
 
 	var jsonData = JSON.stringify(data);
-	console.log(jsonData);
+	//console.log(jsonData);
  
 	fs.appendFile("log"+"-"+date.getMonth()+'-'+date.getDate()+'-'+date.getFullYear()+".json", jsonData, 'utf8', function (err) {
+		if (err) {
+			console.log("An error occured while writing JSON Object to File.");
+			return console.log(err);
+		}
+	});
+	fs.appendFile("log"+"-"+date.getMonth()+'-'+date.getDate()+'-'+date.getFullYear()+".json", "\n", 'utf8', function (err) {
 		if (err) {
 			console.log("An error occured while writing JSON Object to File.");
 			return console.log(err);

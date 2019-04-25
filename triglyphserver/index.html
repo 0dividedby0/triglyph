@@ -157,6 +157,7 @@
 				var difference = currentTime-previousTime;
 				if (difference > 5000) {
 					if (!paused) delete $scope.arrays[keys[i]];
+					if (Object.keys($scope.arrays).length == 0) location.reload();
 				}
 			}
 		}, 5000);
