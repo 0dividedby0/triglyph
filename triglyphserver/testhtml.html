@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    var app = angular.module('myApp', []);
+    // var socket = io();
+    app.controller('myCtrl', function($scope) {
+    //     function playPressed () {
+    //         socket.emit('play');
+    //     }
+
+    //     function pausePressed () {
+    //         socket.emit('pause');
+    //     }
+
+    //     function resetPressed () {
+    //         socket.emit('reset');
+    //         location.reload();
+    //     }
+
+    //     socket.on('message', function(message) {
+    //         document.getElementById("message").innerHTML = (message + "<br>");
+    //     });
+    //     socket.on('serialopen', function (baud) {
+    //         document.getElementById("message").innerHTML = ("Opened serial port with baud rate: " + baud + "<br>");
+    //     });
+
+    //     socket.on('serialclosed', function () {
+    //         document.getElementById("message").innerHTML = ("Serial port closed" + "<br>");
+    //     });
+
+    //     socket.on('serialerror', function () {
+    //         document.getElementById("message").innerHTML = ("Serial port error!!!" + "<br>");;
+    //     });     
+
+    //     socket.on('newData', function (sampleTime, results) {
+            
+    //     });
+
+        $scope.firstName= "John";
+        $scope.lastName= "Doe";
+        $scope.sensors = [
+        {name:'Feather 1',co2:12,barometric:228,temp:42,uv:42,ambient:42,prox:42,north:42,south:42,magx:42,magy:42,magz:42,gyrox:42,gyroy:42,gyroz:42,red:42, green:42,blue:42},
+        {name:'Feather 2',co2:12,barometric:228,temp:42,uv:42,ambient:42,prox:42,north:42,south:42,magx:42,magy:42,magz:42,gyrox:42,gyroy:42,gyroz:42,red:42, green:42,blue:42},
+        {name:'Feather 3',co2:12,barometric:228,temp:42,uv:42,ambient:42,prox:42,north:42,south:42,magx:42,magy:42,magz:42,gyrox:42,gyroy:42,gyroz:42,red:42, green:42,blue:42}
+        ];
+    });
+</script>
+
+<head>
+    <style>
+    h2 {
+         display: inline;
+    }
+    .dataCollection {
+        width: 99%;
+        border: 3px solid black;
+        border-radius: 20px;
+        margin-bottom: 15px;
+        padding: 5px;
+    }
+    .dataCell {
+        display: inline-block;
+        width: 14%;
+        margin-right: 15px;
+        margin-left: 15px;
+        vertical-align: top;
+        text-align: left;
+    }
+    .threshold {
+        padding: 0px;
+        margin: 0px;
+        width: 85px;
+        float: right;
+    }
+    .vl {
+        border-right: 1px solid black;
+        height: 150px;
+        display: inline-block;
+        vertical-align: top;
+    }
+    </style>
+</head>
+
+<body ng-app="myApp" ng-controller="myCtrl">
+    
+    <center>
+    <h1>Triglyph Data Feed</h1>
+    <p id="message">Welcome!</p>
+    <button onclick="playPressed()">Play</button>
+    <button onclick="pausePressed()">Pause</button>
+    <button onclick="resetPressed()">Reset</button>
+    <br>
+    </center>
+    
+    <div class="dataCollection" ng-repeat="x in sensors">
+        <h2 style="padding-left:15px;padding-right:15px;">{{x.name}}</h2>
+        <button onclick="">Show IR</button>
+        <button onclick="">Play Audio</button>
+        <hr>
+        <center>
+        <div class="dataCell">
+            <div style="text-align:center;font-weight: bold;">Environmental</div>
+            <p>Temperature: {{x.temp}}<input class="threshold" type="text" id="tempThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Pressure: {{x.barometric}}<input class="threshold" type="text" id="xThreshold" placeholder="Enter Threshold Value"></p>
+            <p>CO2: {{x.co2}}<input class="threshold" type="text" id="co2Threshold" placeholder="Enter Threshold Value"></p>
+        </div>
+
+        <div class="vl"></div>
+
+        <div class="dataCell">
+            <div style="text-align:center;font-weight: bold;">Light</div>
+            <p>UV: {{x.uv}}<input class="threshold" type="text" id="xThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Light: {{x.ambient}}<input class="threshold" type="text" id="ambThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Proximity: {{x.prox}}<input class="threshold" type="text" id="proxThreshold" placeholder="Enter Threshold Value"></p>
+        </div> 
+        
+        <div class="vl"></div>
+
+        <div class="dataCell">
+            <div style="text-align:center;font-weight: bold;">Hall Effect</div>
+            <p>North: {{x.north}}<input class="threshold" type="text" id="nHallThreshold" placeholder="Enter Threshold Value"></p>
+            <p>South: {{x.south}}<input class="threshold" type="text" id="sHallThreshold" placeholder="Enter Threshold Value"></p>
+        </div>
+
+        <div class="vl"></div>
+
+        <div class="dataCell">
+            <div style="text-align:center;font-weight: bold;">Magnometer</div>
+            <p>X: {{x.magx}}<input class="threshold" type="text" id="xMagThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Y: {{x.magy}}<input class="threshold" type="text" id="yMagThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Z: {{x.magz}}<input class="threshold" type="text" id="zMagThreshold" placeholder="Enter Threshold Value"></p>
+        </div> 
+        
+        <div class="vl"></div>
+
+        <div class="dataCell">
+            <div style="text-align:center;font-weight: bold;">Gyroscope</div>
+            <p>X: {{x.gyrox}}<input class="threshold" type="text" id="xGyroThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Y: {{x.gyroy}}<input class="threshold" type="text" id="yGyroThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Z: {{x.gyroz}}<input class="threshold" type="text" id="zGyroThreshold" placeholder="Enter Threshold Value"></p>
+        </div>  
+        
+        <div class="vl"></div>
+
+        <div class="dataCell">
+            <div style="text-align:center;font-weight: bold;">RGB</div>
+            <p>Red: {{x.red}}<input class="threshold" type="text" id="redThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Green: {{x.green}}<input class="threshold" type="text" id="greenThreshold" placeholder="Enter Threshold Value"></p>
+            <p>Blue: {{x.blue}}<input class="threshold" type="text" id="blueThreshold" placeholder="Enter Threshold Value"></p>
+        </div> 
+    </center>
+    </div>
+</body>
