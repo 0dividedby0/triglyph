@@ -4,7 +4,8 @@ For Sensors:
 1. Download Arduino IDE and clone repository
 2. Move library into arduino folder
 3. Plug in sensor array
-4. Compile and upload XXX.ino to the sensor array<br/>
+4. Compile and upload XXX.ino to the sensor array
+
 For Microphone:
 1. Switch to "jhalcomb/microphone" branch
 2. Navigate to "Feather Tests/FeatherMicrophone"
