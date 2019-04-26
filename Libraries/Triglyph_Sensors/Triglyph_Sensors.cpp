@@ -204,14 +204,15 @@ float Triglyph_Sensors::read_BM1383_pressure()
     BM1383_Pres_leastByte = Wire.read();
     BM1383_Temp_highByte = Wire.read();
     BM1383_Temp_lowByte = Wire.read();
+    Wire.endTransmission();
 
-    BM1383_Temp_Out = (BM1383_Temp_highByte<<8) | (BM1383_Temp_lowByte);
-    BM1383_Temp_Conv_Out = (float)BM1383_Temp_Out/32;
+    //BM1383_Temp_Out = (BM1383_Temp_highByte<<8) | (BM1383_Temp_lowByte);
+    //BM1383_Temp_Conv_Out = (float)BM1383_Temp_Out/32;
     
-    BM1383_Var  = ((int16_t)BM1383_Pres_highByte<<3) | ((int16_t)BM1383_Pres_lowByte >> 5);
-    BM1383_Deci = ((BM1383_Pres_lowByte & 0x1f) << 6 | ((BM1383_Pres_leastByte >> 2)));
+    BM1383_Var  = (((int16_t)(BM1383_Pres_highByte) << 3) | ((int16_t)(BM1383_Pres_lowByte) >> 5));
+    BM1383_Deci = (((int16_t)(BM1383_Pres_lowByte) & 0x1f) << 6 | ((int16_t)(BM1383_Pres_leastByte) >> 2));
     BM1383_Deci = (float)BM1383_Deci* 0.00048828125;  //0.00048828125 = 2^-11
-    BM1383_Pres_Conv_Out = (BM1383_Var + BM1383_Deci);   //question pending here...
+    BM1383_Pres_Conv_Out = (BM1383_Var + BM1383_Deci)-800;   //question pending here...
 
     return BM1383_Pres_Conv_Out;
 }
