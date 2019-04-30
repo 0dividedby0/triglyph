@@ -29,4 +29,5 @@ To Run:
 ### Connect a Client
 To Connect:
 1. Connect to "PiFi2" from your computer
+  - Password: morepiforme
 2. Open a browser and navigate to "192.168.4.1:3000"
