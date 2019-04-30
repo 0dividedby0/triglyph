@@ -26,3 +26,7 @@ To Run:
 8. Start server with "node index.js"
 9. Open new ssh connection (don't close the last one)
 10. Start listening for microphone with "microphone command: nc -l 4000 | aplay -r 8000 -f U8"
+### Connect a Client
+To Connect:
+1. Connect to "PiFi2" from your computer
+2. Open a browser and navigate to "192.168.4.1:3000"
