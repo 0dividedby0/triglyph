@@ -17,6 +17,7 @@ To Run:
 2. Connect to "PiFi2" from your computer
   - Password: morepiforme
 3. Open an ssh connection with the pi
+  - IP: 192.168.4.1
   - User: pi
   - Password: raspberry
 4. Navigate to "~/triglyph" directory
